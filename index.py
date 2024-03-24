@@ -18,7 +18,11 @@ q = Query(limit=2, tag="")
 d = Discussions()
 config = configparser.ConfigParser()
 config.read('settings.ini')
+
 postingKey = config['DEFAULT']['postingKey']
+author = config['DEFAULT']['authorToVoteComment']
+voter = config['DEFAULT']['voterName']
+weight = int(config['DEFAULT']['weight'])
 
 posts = d.get_discussions('created', q, limit=2)
 client = Hive('https://api.hive.blog/')
@@ -51,7 +55,7 @@ def get_comments_to_vote(author, voter):
 
   # get comments of selected account
   comments = d.get_discussions('comments', q, limit=20)
-  minPostLifeInMinutes = 5
+  minPostLifeInMinutes = int(config['DEFAULT']['minPostLifeInMinutes'])
   maxMinutes = 7
   now = datetime.now().astimezone()
   commentsToVote = []
@@ -73,9 +77,7 @@ def get_comments_to_vote(author, voter):
 
 def main():
   print("I'm on my duty, sir!")
-  author = 'hbd.funder'
-  voter = 'kumpel'
-  weight = 100
+
   commentsToVote = get_comments_to_vote(author, voter)
   number_of_comments_to_vote = len(commentsToVote)
   if number_of_comments_to_vote == 0:
@@ -89,8 +91,8 @@ def main():
     vote(voter, author, permlink, weight)
 
 
-
-schedule.every(5).seconds.do(main)
+checkSecondsInterval = int(config['DEFAULT']['checkSecondsInterval'])
+schedule.every(checkSecondsInterval).seconds.do(main)
 while True:
     schedule.run_pending()
     time.sleep(1)
